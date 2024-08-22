@@ -2,7 +2,7 @@ import splash from './splash.jpg';
 import park from './park.png';
 import zenix from './zenix.png';
 import toyota from './toyota.png';
-import icoCar from './car_list.svg';
+import icoCar from './cars.png';
 import icoBox from './fi_box.svg';
 import icoTruck from './fi_truck.svg';
 import icoCamera from './fi_camera.svg';

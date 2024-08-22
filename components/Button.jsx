@@ -1,22 +1,21 @@
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { Text, StyleSheet, Pressable } from "react-native";
 import React from "react";
-import { Link } from "expo-router";
 import { Colors } from "@/constants/Colors";
 
 export default function button(props) {
   return (
-    <TouchableOpacity style={styles.newButton}>
-      <Link style={styles.newButtonLink} href={props.link}>
+    <Pressable style={styles.newButton} onPress={props.onPress}>
+      <Text style={styles.newButtonLink}>
         {props.name}
-      </Link>
-    </TouchableOpacity>
+      </Text>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
     newButton: {
       borderRadius: 10,
-      backgroundColor: Colors.light.button,
+      backgroundColor: Colors.common.button,
       alignItems: "center",
       justifyContent: "center",
       margin: 5,

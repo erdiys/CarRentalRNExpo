@@ -1,32 +1,27 @@
-import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
+import { View, StyleSheet, Pressable } from "react-native";
 import React from "react";
-import { Link, router } from "expo-router";
 import { Colors } from "@/constants/Colors";
+import { Ionicons } from "@expo/vector-icons";
 
-export default function Menu(props) {
+export default function Menu({ onPress, icon, ...rest }) {
   return (
-    <TouchableOpacity
-      style={styles.newButton}
-      onPress={() => router.navigate(props.link)}
-    >
-      <View style={styles.image}>
-        <Image source={props.icon} />
-      </View>
-    </TouchableOpacity>
+    <View style={styles.newButton}>
+      <Pressable onPress={onPress}>
+        <Ionicons name={icon} size={26} {...rest} />
+      </Pressable>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   newButton: {
-    borderRadius: 10,
+    borderRadius: 8,
     backgroundColor: Colors.common.primary,
     alignItems: "center",
     justifyContent: "center",
-    margin: 5
-  },
-  image: {
-    padding: 10,
-    width: 24,
-    height: 24
-  },
+    marginBottom: 5,
+    padding: 5,
+    height: 50,
+    width: 50,
+  }
 });

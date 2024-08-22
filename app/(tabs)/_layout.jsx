@@ -31,7 +31,7 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="explore"
+          name="car_list"
           options={{
             title: "Daftar Mobil",
             tabBarIcon: ({ color, focused }) => (
