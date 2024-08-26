@@ -2,17 +2,21 @@ import { View, Text, Image, StyleSheet } from "react-native";
 import { useState, useEffect } from "react";
 import images from "../../assets/images";
 import { Colors } from "@/constants/Colors";
-import ParallaxScrollView from "@/components/ParallaxScrollView";
+import ParallaxFlatList from "@/components/ParallaxFlatList";
 import NewButton from "@/components/Button";
 import Menu from "@/components/Menu";
 import { router } from "expo-router";
 import { Row, Col } from "@/components/Grid";
-import CarList from "../../components/CarList";
+import CarList from "@/components/CarList";
+import * as SecureStored from "expo-secure-store";
 
 export default function HomeScreen() {
+  const [user, setUser] = useState({});
   const [cars, setCars] = useState([]);
+  const [loading, setLoading] = useState(false);
   const carNameList = [
     {
+      id: 1,
       name: "Innova Zenix",
       passengers: 8,
       baggage: 4,
@@ -20,6 +24,7 @@ export default function HomeScreen() {
       image: "https://cdn-icons-png.flaticon.com/512/4662/4662005.png"
     },
     {
+      id: 2,
       name: "All New Avanza",
       passengers: 6,
       baggage: 3,
@@ -27,6 +32,7 @@ export default function HomeScreen() {
       image: "https://cdn-icons-png.flaticon.com/512/214/214280.png"
     },
     {
+      id: 3,
       name: "Yaris Cross",
       passengers: 4,
       baggage: 2,
@@ -34,6 +40,7 @@ export default function HomeScreen() {
       image: "https://cdn-icons-png.flaticon.com/512/5031/5031317.png"
     },
     {
+      id: 4,
       name: "Raize",
       passengers: 4,
       baggage: 2,
@@ -43,18 +50,37 @@ export default function HomeScreen() {
   ];
 
   useEffect(() => {
+    const controller = new AbortController(); // UseEffect cleanup untuk menghindari memory Leak
+    const signal = controller.signal; // UseEffect cleanup
+
+    setLoading(true); //loading state
+
     const getData = async () => {
-      const response = await fetch(
-        "https://api-car-rental.binaracademy.org/customer/car"
-      );
-      const body = await response.json();
-      setCars(body);
+      setUser(JSON.parse(await SecureStored.getItemAsync("user")));
+      try {
+        const response = await fetch(
+          "https://api-car-rental.binaracademy.org/customer/car"
+        );
+        const body = await response.json();
+        setCars(body);
+      } catch (e) {
+        // Error Handling
+        if (err.name === "AbortError") {
+          console.log("successfully aborted");
+        } else {
+          console.log(err);
+        }
+      }
     };
     getData();
+    return () => {
+      // cancel request sebelum component di close
+      controller.abort();
+    };
   }, []);
 
   return (
-    <ParallaxScrollView
+    <ParallaxFlatList
       headerBackgroundColor={{
         light: Colors.common.primary,
         dark: Colors.common.primary
@@ -63,7 +89,7 @@ export default function HomeScreen() {
         <View>
           <View style={styles.container}>
             <View>
-              <Text style={styles.textName}>Hi, Name</Text>
+              <Text style={styles.textName}>Hi, {user.email}</Text>
               <Text style={styles.textLoc}>Your Location</Text>
             </View>
             <View>
@@ -72,92 +98,100 @@ export default function HomeScreen() {
           </View>
         </View>
       }
-    >
-      <View style={styles.banner}>
-        <View style={styles.textBanner}>
-          <Text style={styles.textTitle}>
-            Sewa Mobil Berkualitas di kawasanmu
-          </Text>
-          <NewButton
-            name="Sewa Mobil"
-            onPress={() => router.navigate("../(auth)")}
-          />
-        </View>
-        <Image source={images.zenix} style={styles.imgBanner} />
-      </View>
-
-      <View>
-        <Row style={styles.menu}>
-          <Col style={styles.menuButton}>
-            <Menu
-              icon="car-outline"
-              style={styles.menuIcon}
-              onPress={() => router.navigate("./car_list")}
-            />
-            <Text style={styles.textMenu}>Sewa Mobil</Text>
-          </Col>
-
-          <Col style={styles.menuButton}>
-            <Menu
-              icon="cube-outline"
-              style={styles.menuIcon}
-              onPress={() => router.navigate("./oleh_oleh")}
-            />
-            <Text style={styles.textMenu}>Oleh-Oleh</Text>
-          </Col>
-
-          <Col style={styles.menuButton}>
-            <Menu
-              icon="key-outline"
-              color={"white"}
-              onPress={() => router.navigate("./penginapan")}
-            />
-            <Text style={styles.textMenu}>Penginapan</Text>
-          </Col>
-
-          <Col style={styles.menuButton}>
-            <Menu
-              icon="camera-outline"
-              color={"white"}
-              onPress={() => router.navigate("./wisata")}
-            />
-            <Text style={styles.textMenu}>Wisata</Text>
-          </Col>
-        </Row>
-      </View>
-
-      <View>
-        <Text style={styles.textList}>Daftar Mobil Pilihan</Text>
-        {carNameList.length !== 0 &&
-          carNameList.map((val, idx) => {
-            if (val.category === "small") {
-              val.passengers = 4;
-              val.baggage = 2;
-            } else if (val.category === "medium") {
-              val.passengers = 6;
-              val.baggage = 3;
-            } else if (val.category === "large") {
-              val.passengers = 8;
-              val.baggage = 4;
-            }
-            if (val.name == "Innova") {
-              val.image =
-                "https://ik.imagekit.io/tvlk/xpe-asset/AyJ40ZAo1DOyPyKLZ9c3RGQHTP2oT4ZXW+QmPVVkFQiXFSv42UaHGzSmaSzQ8DO5QIbWPZuF+VkYVRk6gh-Vg4ECbfuQRQ4pHjWJ5Rmbtkk=/4674690068575/6-Hours-INNOVA-REBORN-Car-Rental-Includes-Driver-32dfefb9-a283-44a5-a429-f7c7d62b4d44.png?tr=q-60,c-at_max,w-1280,h-720&_src=imagekit";
-            }
-
-            return (
-              <CarList
-                key={idx}
-                image={val.image}
-                carName={val.name}
-                passengers={val.passengers}
-                baggage={val.baggage}
-                price={val.price}
+      banner={
+        <>
+          <View style={styles.banner}>
+            <View style={styles.textBanner}>
+              <Text style={styles.textTitle}>
+                Sewa Mobil Berkualitas di kawasanmu
+              </Text>
+              <NewButton
+                name="Sewa Mobil"
+                onPress={() => router.navigate("../(carlist)")}
               />
-            );
-          })}
-      </View>
-    </ParallaxScrollView>
+            </View>
+            <Image source={images.zenix} style={styles.imgBanner} />
+          </View>
+
+          <View>
+            <Row style={styles.menu}>
+              <Col style={styles.menuButton}>
+                <Menu
+                  icon="car-outline"
+                  style={styles.menuIcon}
+                  onPress={() => router.navigate("./(carlist)")}
+                />
+                <Text style={styles.textMenu}>Sewa Mobil</Text>
+              </Col>
+
+              <Col style={styles.menuButton}>
+                <Menu
+                  icon="cube-outline"
+                  style={styles.menuIcon}
+                  onPress={() => router.navigate("./oleh_oleh")}
+                />
+                <Text style={styles.textMenu}>Oleh-Oleh</Text>
+              </Col>
+
+              <Col style={styles.menuButton}>
+                <Menu
+                  icon="key-outline"
+                  color={"white"}
+                  onPress={() => router.navigate("./penginapan")}
+                />
+                <Text style={styles.textMenu}>Penginapan</Text>
+              </Col>
+
+              <Col style={styles.menuButton}>
+                <Menu
+                  icon="camera-outline"
+                  color={"white"}
+                  onPress={() => router.navigate("./wisata")}
+                />
+                <Text style={styles.textMenu}>Wisata</Text>
+              </Col>
+            </Row>
+          </View>
+          <Text style={styles.textList}>Daftar Mobil Pilihan</Text>
+        </>
+      }
+      loading={loading}
+      data={cars}
+      renderItem={(el) => {
+        const val = el.item;
+        if (val.category === "small") {
+          val.passengers = 4;
+          val.baggage = 2;
+        } else if (val.category === "medium") {
+          val.passengers = 6;
+          val.baggage = 3;
+        } else if (val.category === "large") {
+          val.passengers = 8;
+          val.baggage = 4;
+        }
+        if (val.name == "Innova") {
+          val.image =
+            "https://ik.imagekit.io/tvlk/xpe-asset/AyJ40ZAo1DOyPyKLZ9c3RGQHTP2oT4ZXW+QmPVVkFQiXFSv42UaHGzSmaSzQ8DO5QIbWPZuF+VkYVRk6gh-Vg4ECbfuQRQ4pHjWJ5Rmbtkk=/4674690068575/6-Hours-INNOVA-REBORN-Car-Rental-Includes-Driver-32dfefb9-a283-44a5-a429-f7c7d62b4d44.png?tr=q-60,c-at_max,w-1280,h-720&_src=imagekit";
+        }
+
+        return (
+          <CarList
+            image={val.image}
+            carName={val.name}
+            passengers={val.passengers}
+            baggage={val.baggage}
+            price={val.price}
+            onPress={() => router.navigate(`(carlist)/details/${val.id}`)}
+          />
+        );
+      }}
+      keyExtractor={(item, index) => {
+        return item.id;
+      }}
+      viewabilityConfig={{
+        waitForInteraction: true
+      }}
+    />
   );
 }
 

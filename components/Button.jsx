@@ -2,11 +2,11 @@ import { Text, StyleSheet, Pressable } from "react-native";
 import React from "react";
 import { Colors } from "@/constants/Colors";
 
-export default function button(props) {
+export default function button({name, onPress, style }) {
   return (
-    <Pressable style={styles.newButton} onPress={props.onPress}>
+    <Pressable style={{...styles.newButton, ...style}} onPress={onPress}>
       <Text style={styles.newButtonLink}>
-        {props.name}
+        {name}
       </Text>
     </Pressable>
   );

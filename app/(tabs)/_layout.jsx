@@ -1,4 +1,4 @@
-import { Tabs } from "expo-router";
+import { Tabs, useSegments } from "expo-router";
 import React from "react";
 import Constants from "expo-constants";
 
@@ -9,6 +9,7 @@ import { View } from "react-native";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const segments = useSegments();
 
   return (
     <View style={{ marginTop: Constants.statusBarHeight, flex: 1 }}>
@@ -31,9 +32,12 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="car_list"
+          name="(carlist)"
           options={{
             title: "Daftar Mobil",
+            tabBarStyle: {
+              display: segments.includes("details") ? "none" : "flex"
+            },
             tabBarIcon: ({ color, focused }) => (
               <TabBarIcon
                 name={focused ? "list" : "list-outline"}

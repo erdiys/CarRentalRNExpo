@@ -1,4 +1,4 @@
-import { View, Text, Image, StyleSheet } from "react-native";
+import { View, Text, Image, StyleSheet, Pressable } from "react-native";
 import React from "react";
 import { Col, Row } from "./Grid";
 import { Ionicons } from "@expo/vector-icons";
@@ -13,10 +13,11 @@ export default function CarList({
   carName,
   passengers,
   baggage,
-  price
+  price,
+  onPress=() => {}
 }) {
   return (
-    <View style={styles.container}>
+    <Pressable style={styles.container} onPress={onPress}>
       <Row style={styles.rowContainer}>
         <Col>
           <Image source={{uri: image}} style={styles.image} />
@@ -36,7 +37,7 @@ export default function CarList({
           <Text style={styles.textPrice}>{formatCurrency.format(price)}</Text>
         </Col>
       </Row>
-    </View>
+    </Pressable>
   );
 }
 

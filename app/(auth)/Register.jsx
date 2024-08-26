@@ -1,10 +1,91 @@
-import { View, Text, Image, StyleSheet, TextInput, Button } from "react-native";
-import React from "react";
-import { Link } from "expo-router";
+import { View, Text, Image, StyleSheet, TextInput } from "react-native";
+import React, { useState } from "react";
+import { Link, router } from "expo-router";
 import images from "@/assets/images";
-import { Colors } from "@/constants/Colors.ts";
+import NewButton from "@/components/Button";
+import ModalPopup from "../../components/Modal";
+import { Ionicons } from "@expo/vector-icons";
+import { Row } from "../../components/Grid";
 
 export default function Register() {
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalStatus, setModalStatus] = useState({
+    icon: "",
+    color: "",
+    comment: "",
+    welcome: ""
+  });
+  const [formData, setFormData] = useState({
+    email: "",
+    password: ""
+  });
+
+  const handleChange = (name, text) => {
+    setFormData({
+      ...formData,
+      [name]: text
+    });
+  };
+  const handleSubmit = async () => {
+    try {
+      const req = await fetch(
+        "https://api-car-rental.binaracademy.org/customer/auth/register",
+        {
+          method: "POST",
+          headers: {
+            accept: "application/json",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            email: formData.email,
+            password: formData.password,
+            role: "Customer"
+          })
+        }
+      );
+      const body = await req.json();
+      console.log(body);
+      console.log(req.status);
+      if (req.status == 201) {
+        setModalStatus({
+          icon: "checkmark-circle",
+          color: "green",
+          comment: "Register Successful!",
+          welcome: `${formData.email} registered.`
+        });
+        setModalVisible(true);
+        setTimeout(() => {
+          setModalVisible(false);
+          router.navigate("/");
+        }, 2000);
+      } else {
+        if (!body.errors) {
+          setModalStatus({
+            icon: "close-circle",
+            color: "red",
+            comment: "Register Failed!",
+            welcome: body.message
+          });
+        } else {
+          setModalStatus({
+            icon: "close-circle",
+            color: "red",
+            comment: "Register Failed!",
+            welcome: String(
+              body.errors.map((val, idx) => val.message).join(`\n`)
+            )
+          });
+        }
+        setModalVisible(true);
+        setTimeout(() => {
+          setModalVisible(false);
+        }, 4000);
+      }
+    } catch (e) {
+      console.log("ini error", e);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Image source={images.toyota} style={styles.image} />
@@ -18,8 +99,8 @@ export default function Register() {
         <Text style={styles.formLabel}>Email*</Text>
         <TextInput
           style={styles.formInput}
-          secureTextEntry={true}
           placeholder="Contoh: john.doe@domain.com"
+          onChangeText={(text) => handleChange("email", text)}
         />
       </View>
 
@@ -29,11 +110,12 @@ export default function Register() {
           style={styles.formInput}
           secureTextEntry={true}
           placeholder="6+ character"
+          onChangeText={(text) => handleChange("password", text)}
         />
       </View>
 
       <View style={styles.formContainer}>
-        <Button title="Sign Up" color={Colors.common.button} />
+        <NewButton name="Sign Up" onPress={() => handleSubmit()} />
         <Text style={styles.noteText}>
           Already have an account?{" "}
           <Link style={styles.linkText} href="./">
@@ -41,6 +123,25 @@ export default function Register() {
           </Link>
         </Text>
       </View>
+
+      <ModalPopup visible={modalVisible}>
+        <View style={styles.modalBg}>
+          <Row style={styles.modalContent}>
+            <Ionicons
+              size={34}
+              name={modalStatus.icon}
+              color={modalStatus.color}
+            />
+            <Text style={styles.textModal}>{modalStatus.comment}</Text>
+            <Ionicons
+              size={34}
+              name={modalStatus.icon}
+              color={modalStatus.color}
+            />
+          </Row>
+          <Text style={styles.textModal}>{modalStatus.welcome}</Text>
+        </View>
+      </ModalPopup>
     </View>
   );
 }
@@ -82,5 +183,33 @@ const styles = StyleSheet.create({
   linkText: {
     color: "blue",
     textDecorationLine: "underline"
+  },
+  modalBg: {
+    width: "90%",
+    justifyContent: "center",
+    backgroundColor: "white",
+    borderRadius: 8,
+    padding: 10,
+    shadowColor: "rgba(0,0,0,.5)",
+    // android
+    elevation: 2,
+    // ios
+    shadowOffset: {
+      width: 0,
+      height: 3
+    },
+    shadowOpacity: 1,
+    shadowRadius: 1.5
+  },
+  modalContent: {
+    alignSelf: "center",
+    justifyContent: "center"
+  },
+  textModal: {
+    fontFamily: "Poppins",
+    fontSize: 14,
+    textAlignVertical: "center",
+    textAlign: "center",
+    margin: 10
   }
 });
