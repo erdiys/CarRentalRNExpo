@@ -4,10 +4,15 @@ import { useLocalSearchParams } from "expo-router";
 import { Row, Col } from "@/components/Grid";
 import { Ionicons } from "@expo/vector-icons";
 import NewButton from "@/components/Button";
+import { useSelector, useDispatch } from "react-redux";
+import {
+  getCarDetails,
+  selectCarDetails
+} from "../../../../redux/reducer/car/carDetailsSlice";
 
 export default function details() {
-  const [cars, setCars] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const { data, isLoading, errorMessage } = useSelector(selectCarDetails);
+  const dispatch = useDispatch();
   const { id } = useLocalSearchParams();
   const include = [
     "Apa saja yang termasuk dalam paket misal durasi max 12 jam",
@@ -30,65 +35,53 @@ export default function details() {
     const controller = new AbortController(); // UseEffect cleanup untuk menghindari memory Leak
     const signal = controller.signal; // UseEffect cleanup
 
-    setLoading(true); //loading state
+    dispatch(getCarDetails({payload:id, signal:signal}));
 
-    const getData = async () => {
-      try {
-        const response = await fetch(
-          "https://api-car-rental.binaracademy.org/customer/car/" + id
-        );
-        const body = await response.json();
-
-        if (body.category === "small") {
-          body.passengers = 4;
-          body.baggage = 2;
-        } else if (body.category === "medium") {
-          body.passengers = 6;
-          body.baggage = 3;
-        } else if (body.category === "large") {
-          body.passengers = 8;
-          body.baggage = 4;
-        }
-        if (body.name == "Innova") {
-          body.image =
-            "https://ik.imagekit.io/tvlk/xpe-asset/AyJ40ZAo1DOyPyKLZ9c3RGQHTP2oT4ZXW+QmPVVkFQiXFSv42UaHGzSmaSzQ8DO5QIbWPZuF+VkYVRk6gh-Vg4ECbfuQRQ4pHjWJ5Rmbtkk=/4674690068575/6-Hours-INNOVA-REBORN-Car-Rental-Includes-Driver-32dfefb9-a283-44a5-a429-f7c7d62b4d44.png?tr=q-60,c-at_max,w-1280,h-720&_src=imagekit";
-        }
-
-        setCars(body);
-      } catch (e) {
-        // Error Handling
-        if (err.name === "AbortError") {
-          console.log("successfully aborted");
-        } else {
-          console.log(err);
-        }
-      }
-    };
-    getData();
     return () => {
       // cancel request sebelum component di close
       controller.abort();
     };
   }, [id]);
 
+  const dataGen = {};
+  if (data) {
+    if (data.category === "small") {
+      dataGen.passengers = 4;
+      dataGen.baggage = 2;
+    } else if (data.category === "medium") {
+      dataGen.passengers = 6;
+      dataGen.baggage = 3;
+    } else if (data.category === "large") {
+      dataGen.passengers = 8;
+      dataGen.baggage = 4;
+    }
+    if (data.name == "Innova") {
+      dataGen.image =
+        "https://ik.imagekit.io/tvlk/xpe-asset/AyJ40ZAo1DOyPyKLZ9c3RGQHTP2oT4ZXW+QmPVVkFQiXFSv42UaHGzSmaSzQ8DO5QIbWPZuF+VkYVRk6gh-Vg4ECbfuQRQ4pHjWJ5Rmbtkk=/4674690068575/6-Hours-INNOVA-REBORN-Car-Rental-Includes-Driver-32dfefb9-a283-44a5-a429-f7c7d62b4d44.png?tr=q-60,c-at_max,w-1280,h-720&_src=imagekit";
+    }
+  }
+
   return (
     <View style={styles.container}>
       <Col style={styles.colContainer}>
         <Row style={styles.rowContainer}>
-          <Text style={styles.textName}>{cars.name}</Text>
+          <Text style={styles.textName}>{data.name}</Text>
         </Row>
         <Row style={styles.rowContainer}>
           <Row style={styles.rowDetail}>
             <Ionicons size={14} name="people-outline" color="black" />
-            <Text style={styles.textDetail}>{cars.passengers}</Text>
+            <Text style={styles.textDetail}>{dataGen.passengers}</Text>
           </Row>
           <Row style={styles.rowDetail}>
             <Ionicons size={14} name="bag-handle-outline" color="black" />
-            <Text style={styles.textDetail}>{cars.baggage}</Text>
+            <Text style={styles.textDetail}>{dataGen.baggage}</Text>
           </Row>
         </Row>
         <Row style={styles.rowContainer}>
-          <Image source={{ uri: cars.image }} style={styles.image} />
+          <Image
+            source={{ uri: data.image !== null ? data.image : dataGen.image }}
+            style={styles.image}
+          />
         </Row>
       </Col>
 
@@ -118,7 +111,7 @@ export default function details() {
 
       <View style={styles.bayarContainer}>
         <Text style={styles.textPrice}>
-          {formatCurrency.format(cars.price)}
+          {formatCurrency.format(data.price)}
         </Text>
         <NewButton
           name="Lanjutkan Pembayaran"
@@ -198,14 +191,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#8A8A8A",
     // paddingBottom: 5,
-    textAlignVertical: "center",
-    
+    textAlignVertical: "center"
   },
   rowDest: {
     alignItems: "center",
     paddingBottom: 5,
     paddingRight: 10,
-    gap: 10,
+    gap: 10
     // justifyContent: 'center',
-  },
+  }
 });

@@ -9,11 +9,13 @@ import { router } from "expo-router";
 import { Row, Col } from "@/components/Grid";
 import CarList from "@/components/CarList";
 import * as SecureStored from "expo-secure-store";
+import { useSelector, useDispatch } from "react-redux";
+import { getCar, selectCar } from "../../redux/reducer/car/carSlice";
 
 export default function HomeScreen() {
   const [user, setUser] = useState({});
-  const [cars, setCars] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const { data, isLoading } = useSelector(selectCar);
+  const dispatch = useDispatch();
   const carNameList = [
     {
       id: 1,
@@ -53,26 +55,9 @@ export default function HomeScreen() {
     const controller = new AbortController(); // UseEffect cleanup untuk menghindari memory Leak
     const signal = controller.signal; // UseEffect cleanup
 
-    setLoading(true); //loading state
+    dispatch(getCar(signal));
+    setUser(JSON.parse(SecureStored.getItem("user")));
 
-    const getData = async () => {
-      setUser(JSON.parse(await SecureStored.getItemAsync("user")));
-      try {
-        const response = await fetch(
-          "https://api-car-rental.binaracademy.org/customer/car"
-        );
-        const body = await response.json();
-        setCars(body);
-      } catch (e) {
-        // Error Handling
-        if (err.name === "AbortError") {
-          console.log("successfully aborted");
-        } else {
-          console.log(err);
-        }
-      }
-    };
-    getData();
     return () => {
       // cancel request sebelum component di close
       controller.abort();
@@ -155,33 +140,35 @@ export default function HomeScreen() {
           <Text style={styles.textList}>Daftar Mobil Pilihan</Text>
         </>
       }
-      loading={loading}
-      data={cars}
-      renderItem={(el) => {
-        const val = el.item;
-        if (val.category === "small") {
+      loading={isLoading}
+      data={data}
+      renderItem={({ item }) => {
+        const val = {};
+        if (item.category === "small") {
           val.passengers = 4;
           val.baggage = 2;
-        } else if (val.category === "medium") {
+        } else if (item.category === "medium") {
           val.passengers = 6;
           val.baggage = 3;
-        } else if (val.category === "large") {
+        } else if (item.category === "large") {
           val.passengers = 8;
           val.baggage = 4;
         }
-        if (val.name == "Innova") {
+        if (item.name == "Innova") {
           val.image =
             "https://ik.imagekit.io/tvlk/xpe-asset/AyJ40ZAo1DOyPyKLZ9c3RGQHTP2oT4ZXW+QmPVVkFQiXFSv42UaHGzSmaSzQ8DO5QIbWPZuF+VkYVRk6gh-Vg4ECbfuQRQ4pHjWJ5Rmbtkk=/4674690068575/6-Hours-INNOVA-REBORN-Car-Rental-Includes-Driver-32dfefb9-a283-44a5-a429-f7c7d62b4d44.png?tr=q-60,c-at_max,w-1280,h-720&_src=imagekit";
         }
 
         return (
           <CarList
-            image={val.image}
-            carName={val.name}
+            image={item.image ? item.image : val.image}
+            carName={item.name}
             passengers={val.passengers}
             baggage={val.baggage}
-            price={val.price}
-            onPress={() => router.navigate(`(carlist)/details/${val.id}`)}
+            price={item.price}
+            onPress={() => {
+              router.navigate(`(carlist)/details/${item.id}`);
+            }}
           />
         );
       }}
