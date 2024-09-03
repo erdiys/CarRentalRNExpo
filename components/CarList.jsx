@@ -1,5 +1,5 @@
 import { View, Text, Image, StyleSheet, Pressable } from "react-native";
-import React from "react";
+import React, { useCallback } from "react";
 import { Col, Row } from "./Grid";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -14,10 +14,12 @@ export default function CarList({
   passengers,
   baggage,
   price,
-  onPress=() => {}
+  onPress=() => {},
+  style
 }) {
+  const formatIDR = useCallback((price) => formatCurrency.format(price), []);
   return (
-    <Pressable style={styles.container} onPress={onPress}>
+    <Pressable style={{...styles.container, ...style}} onPress={onPress}>
       <Row style={styles.rowContainer}>
         <Col>
           <Image source={{uri: image}} style={styles.image} />
@@ -34,7 +36,7 @@ export default function CarList({
               <Text style={styles.textDetail}>{baggage}</Text>
             </Row>
           </Row>
-          <Text style={styles.textPrice}>{formatCurrency.format(price)}</Text>
+          <Text style={styles.textPrice}>{formatIDR(price || 0)}</Text>
         </Col>
       </Row>
     </Pressable>
@@ -48,7 +50,7 @@ const styles = StyleSheet.create({
     borderColor: "#8A8A8A",
     backgroundColor: "white",
     overflow: "hidden",
-    marginVertical: 10,
+    margin: 10,
     padding: 12,
     shadowColor: "rgba(0,0,0,.5)",
     // android

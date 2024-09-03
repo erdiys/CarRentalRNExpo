@@ -32,7 +32,9 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (loaded) {
-      if (user) router.navigate("/(tabs)");
+      setTimeout(() => {
+        if (user) router.navigate("/(tabs)");
+      }, 200);
 
       setTimeout(() => {
         SplashScreen.hideAsync();
@@ -47,7 +49,7 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
       <Provider store={store}>
-        <Stack>
+        <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />
           <Stack.Screen name="+not-found" />

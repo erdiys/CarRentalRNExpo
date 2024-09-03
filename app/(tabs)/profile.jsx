@@ -6,13 +6,12 @@ import NewButton from "@/components/Button";
 import { router } from "expo-router";
 import Colors from "@/constants/Colors";
 import * as SecureStored from "expo-secure-store";
-
-async function logout(key) {
-  await SecureStored.deleteItemAsync(key);
-}
+import { useSelector, useDispatch } from "react-redux";
+import { login, selectLogin, logout } from "../../redux/reducer/auth/authLoginSlice";
 
 export default function profile() {
-  const user = JSON.parse(SecureStored.getItem("user"));
+  const { data } = useSelector(selectLogin);
+  const dispatch = useDispatch();
 
   return (
     <View>
@@ -21,7 +20,7 @@ export default function profile() {
           <View style={styles.image}>
             <Image source={images.park} />
           </View>
-          <Text style={styles.textNA}>Welcome back {`\n${user.email}`}</Text>
+          <Text style={styles.textNA}>Welcome back {`\n${data.email}`}</Text>
           <View style={styles.buttonContainer}>
             <NewButton
               name="Logout"
@@ -29,7 +28,7 @@ export default function profile() {
                 backgroundColor: "darkred"
               }}
               onPress={() => {
-                logout("user");
+                dispatch(logout());
                 router.navigate("../(auth)");
               }}
             />

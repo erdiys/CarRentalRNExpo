@@ -1,19 +1,28 @@
 import { View, Text, Image, StyleSheet, TextInput } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, router } from "expo-router";
 import images from "@/assets/images";
 import NewButton from "@/components/Button";
 import ModalPopup from "@/components/Modal";
 import { Row } from "@/components/Grid";
 import { Ionicons } from "@expo/vector-icons";
-import * as SecureStored from "expo-secure-store";
+import * as Yup from "yup";
+import { Formik } from "formik";
 
-async function save(key, value) {
-  await SecureStored.setItemAsync(key, value);
-}
+import { useSelector, useDispatch } from "react-redux";
+import { login, selectLogin } from "../../redux/reducer/auth/authLoginSlice";
+
+const SignupSchema = Yup.object().shape({
+  email: Yup.string().email("Invalid email").required("Required"),
+  password: Yup.string()
+    .min(8, "Too Short!")
+    .max(20, "Too Long!")
+    .required("Required")
+});
 
 export default function Login() {
-  const [token, setToken] = useState({});
+  const { data, isError, errorMessage, state } = useSelector(selectLogin);
+  const dispatch = useDispatch();
   const [modalStatus, setModalStatus] = useState({
     icon: "xmark-circle",
     color: "red",
@@ -26,94 +35,98 @@ export default function Login() {
     password: ""
   });
 
-  const handleChange = (name, text) => {
-    setFormData({
-      ...formData,
-      [name]: text
-    });
-  };
-
-  const handleSubmit = async () => {
-    try {
-      const req = await fetch(
-        "https://api-car-rental.binaracademy.org/customer/auth/login",
-        {
-          method: "POST",
-          headers: {
-            accept: "application/json",
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            email: formData.email,
-            password: formData.password
-          })
-        }
-      );
-      const body = await req.json();
-
-      if (req.ok) {
-        setToken(body.access_token);
-        setModalStatus({
-          icon: "checkmark-circle",
-          color: "green",
-          comment: "Login Successful!",
-          welcome: `Welcome ${formData.email}`
-        });
-        save("user", JSON.stringify(body));
-        setModalVisible(true);
-        setTimeout(() => {
-          setModalVisible(false);
-          router.navigate("./(tabs)");
-        }, 2000);
-      } else {
-        setModalStatus({
-          icon: "close-circle",
-          color: "red",
-          comment: "Login Failed!",
-          welcome: body.message
-        });
-        setModalVisible(true);
-        setTimeout(() => {
-          setModalVisible(false);
-        }, 2000);
-      }
-    } catch (e) {
-      console.log(e);
+  useEffect(() => {
+    if (isError === false && data.email) {
+      setModalStatus({
+        icon: "checkmark-circle",
+        color: "green",
+        comment: "Login Successful!",
+        welcome: `Welcome ${formData.email}`
+      });
+      setModalVisible(true);
+      setTimeout(() => {
+        setModalVisible(false);
+        router.replace("./(tabs)");
+      }, 2000);
+    } else if (isError) {
+      setModalStatus({
+        icon: "close-circle",
+        color: "red",
+        comment: "Login Failed!",
+        welcome: errorMessage
+      });
+      setModalVisible(true);
+      setTimeout(() => {
+        setModalVisible(false);
+      }, 2000);
     }
+  }, [isError, state]);
+
+  const handleSubmit = (e) => {
+    dispatch(login({ email: e.email, password: e.password }));
   };
 
   return (
     <View style={styles.container}>
       <Image source={images.toyota} style={styles.image} />
       <Text style={styles.heading}>Welcome Back!</Text>
-      <View style={styles.formContainer}>
-        <Text style={styles.formLabel}>Email</Text>
-        <TextInput
-          style={styles.formInput}
-          placeholder="Contoh: john.doe@domain.com"
-          onChangeText={(text) => handleChange("email", text)}
-        />
-      </View>
 
-      <View style={styles.formContainer}>
-        <Text style={styles.formLabel}>Password</Text>
-        <TextInput
-          style={styles.formInput}
-          secureTextEntry={true}
-          placeholder="password"
-          onChangeText={(text) => handleChange("password", text)}
-        />
-      </View>
+      <Formik
+        initialValues={{ email: "", name: "", password: "" }}
+        validationSchema={SignupSchema}
+        onSubmit={(values) => {
+          setFormData(values);
+          handleSubmit(values);
+        }}
+      >
+        {({
+          handleChange,
+          handleBlur,
+          handleSubmit,
+          values,
+          errors,
+          touched
+        }) => (
+          <>
+            <View style={styles.formContainer}>
+              <Text style={styles.formLabel}>Email</Text>
+              <TextInput
+                style={styles.formInput}
+                placeholder="Contoh: john.doe@domain.com"
+                onChangeText={handleChange("email")}
+                onBlur={handleBlur("email")}
+              />
+              {errors.email && touched.email ? (
+                <Text style={styles.textError}>{errors.email}</Text>
+              ) : null}
+            </View>
 
-      <View style={styles.formContainer}>
-        <NewButton onPress={() => handleSubmit()} name="Sign In" />
-        <Text style={styles.noteText}>
-          Don't have account?{" "}
-          <Link style={styles.linkText} href="./Register">
-            Sign Up for free
-          </Link>
-        </Text>
-      </View>
+            <View style={styles.formContainer}>
+              <Text style={styles.formLabel}>Password</Text>
+              <TextInput
+                style={styles.formInput}
+                secureTextEntry={true}
+                placeholder="password"
+                onChangeText={handleChange("password")}
+                onBlur={handleBlur("password")}
+              />
+              {errors.password && touched.password ? (
+                <Text style={styles.textError}>{errors.password}</Text>
+              ) : null}
+            </View>
+
+            <View style={styles.formContainer}>
+              <NewButton onPress={handleSubmit} name="Sign In" />
+              <Text style={styles.noteText}>
+                Don't have account?{" "}
+                <Link style={styles.linkText} href="./Register">
+                  Sign Up for free
+                </Link>
+              </Text>
+            </View>
+          </>
+        )}
+      </Formik>
 
       <ModalPopup visible={modalVisible}>
         <View style={styles.modalBg}>
@@ -202,5 +215,14 @@ const styles = StyleSheet.create({
     textAlignVertical: "center",
     textAlign: "center",
     margin: 10
+  },
+  textError: {
+    marginTop: 5,
+    color: "red",
+    fontSize: 16
+  },
+  star: {
+    color: "red",
+    fontSize: 16
   }
 });

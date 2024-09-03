@@ -1,0 +1,226 @@
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  ScrollView,
+  Pressable
+} from "react-native";
+import React, { useEffect, useState } from "react";
+import { router, useLocalSearchParams } from "expo-router";
+import { Row, Col } from "@/components/Grid";
+import { Ionicons } from "@expo/vector-icons";
+import NewButton from "@/components/Button";
+import CarList from "@/components/CarList";
+import { Colors } from "@/constants/Colors";
+
+import { useSelector, useDispatch } from "react-redux";
+import {
+  getCarDetails,
+  selectCarDetails
+} from "@/redux/reducer/car/carDetailsSlice";
+import { ProgressSteps, ProgressStep } from "react-native-progress-stepper";
+
+export default function payment() {
+  const [check, setCheck] = useState(false);
+  const { data, isLoading, errorMessage } = useSelector(selectCarDetails);
+  const dispatch = useDispatch();
+
+  const formatCurrency = new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR"
+  });
+
+  const dataGen = { ...data };
+  if (data) {
+    if (data.category === "small") {
+      dataGen.passengers = 4;
+      dataGen.baggage = 2;
+    } else if (data.category === "medium") {
+      dataGen.passengers = 6;
+      dataGen.baggage = 3;
+    } else if (data.category === "large") {
+      dataGen.passengers = 8;
+      dataGen.baggage = 4;
+    }
+    if (data.name == "Innova") {
+      dataGen.image =
+        "https://ik.imagekit.io/tvlk/xpe-asset/AyJ40ZAo1DOyPyKLZ9c3RGQHTP2oT4ZXW+QmPVVkFQiXFSv42UaHGzSmaSzQ8DO5QIbWPZuF+VkYVRk6gh-Vg4ECbfuQRQ4pHjWJ5Rmbtkk=/4674690068575/6-Hours-INNOVA-REBORN-Car-Rental-Includes-Driver-32dfefb9-a283-44a5-a429-f7c7d62b4d44.png?tr=q-60,c-at_max,w-1280,h-720&_src=imagekit";
+    }
+  }
+
+  return (
+    <View style={styles.container}>
+      {/* <Row>
+          <Pressable
+            style={styles.arrow}
+            onPress={() => router.replace("../../../(tabs)")}
+          >
+            <Ionicons size={30} name="arrow-back" />
+          </Pressable>
+          <Text>Pembayaran</Text>
+        </Row> */}
+
+      <View style={{ flex: 1 }}>
+        <ProgressSteps>
+          <ProgressStep
+            label="Pilih Metode"
+            scrollViewProps={{ height: "100%", flex: 1 }}
+            scrollable={true}
+            nextBtnText={
+              <View style={styles.bayarContainer}>
+                <Text style={styles.textPrice}>
+                  {formatCurrency.format(dataGen.price)}
+                </Text>
+                <NewButton
+                  name="Bayar"
+                  onPress={() => router.navigate("./payment")}
+                />
+              </View>
+            }
+            // nextBtnStyle={styles.payButton}
+            // nextBtnTextStyle={styles.textPayButton}
+          >
+            <View style={{ alignItems: "center", height: "100%" }}>
+              <CarList
+                image={dataGen.image}
+                carName={dataGen.name}
+                passengers={dataGen.passengers}
+                baggage={dataGen.baggage}
+                price={dataGen.price}
+                onPress={() => {
+                  router.navigate(`/`);
+                }}
+                style={{ width: "90%" }}
+              />
+
+              <Col style={styles.bankContainer}>
+                <Text style={styles.textDesc}>Pilih Bank Transfer</Text>
+                <Text style={styles.textDesc}>
+                  Kamu bisa membayar dengan transfer melalui ATM, Internet
+                  Banking atau Mobile Banking
+                </Text>
+                <Pressable style={styles.bankRow} onPress={() => check? setCheck(false) : setCheck(true)} >
+                  <View style={styles.bankIcon}>
+                    <Text style={styles.textBank}>BCA</Text>
+                  </View>
+                  <View>
+                    <Text style={styles.textBank}>BCA Transfer</Text>
+                  </View>
+                  <View style={{ width: "50%", alignItems: 'flex-end' }}>
+                    <Ionicons size={30} name="checkmark" style={{display: check? 'flex' : 'none'}} />
+                  </View>
+                </Pressable>
+                <Row style={styles.bankRow}>
+                  <View style={styles.bankIcon}>
+                    <Text style={styles.textBank}>BNI</Text>
+                  </View>
+                  <Text style={styles.textBank}>BNI Transfer</Text>
+                </Row>
+                <Row style={styles.bankRow}>
+                  <View style={styles.bankIcon}>
+                    <Text style={styles.textBank}>Mandiri</Text>
+                  </View>
+                  <Text style={styles.textBank}>Mandiri Transfer</Text>
+                </Row>
+              </Col>
+
+              {/* <View style={styles.bayarContainer}>
+                <Text style={styles.textPrice}>
+                  {formatCurrency.format(dataGen.price)}
+                </Text>
+                <NewButton
+                  name="Bayar"
+                  onPress={() => router.navigate("./payment")}
+                />
+              </View> */}
+            </View>
+          </ProgressStep>
+          <ProgressStep label="Bayar">
+            <View style={{ alignItems: "center" }}>
+              <Text>This is the content within step 2!</Text>
+            </View>
+          </ProgressStep>
+          <ProgressStep label="Tiket">
+            <View style={{ alignItems: "center" }}>
+              <Text>This is the content within step 3!</Text>
+            </View>
+          </ProgressStep>
+        </ProgressSteps>
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    height: "100%",
+    backgroundColor: "white",
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    alignItems: "center"
+  },
+  rowContainer: {
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 5
+  },
+  bayarContainer: {
+    marginTop: 10,
+    width: "100%"
+    // position: "absolute",
+    // bottom: 0,
+    // left: 20
+  },
+  textPrice: {
+    fontFamily: "PoppinsBold",
+    fontSize: 14,
+    paddingLeft: 5
+  },
+  bankContainer: {
+    gap: 10,
+    paddingBottom: 10
+  },
+  bankRow: {
+    alignItems: "center",
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(0, 0, 0, 0.3)",
+    paddingBottom: 10,
+    flexDirection: 'row',
+  },
+  bankIcon: {
+    borderWidth: 0.5,
+    borderRadius: 4,
+    padding: 5,
+    width: 65,
+    margin: 1,
+    marginRight: 10,
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  textDesc: {
+    fontFamily: "PoppinsBold",
+    fontSize: 14
+  },
+  textBank: {
+    fontFamily: "Poppins",
+    fontSize: 12
+  },
+  payButton: {
+    borderRadius: 10,
+    backgroundColor: Colors.common.button,
+    alignItems: "center",
+    justifyContent: "center",
+    margin: 5,
+    width: "100%"
+  },
+  textPayButton: {
+    fontSize: 14,
+    lineHeight: 25,
+    fontFamily: "PoppinsBold",
+    color: "white",
+    padding: 5,
+    width: "100%",
+    textAlign: "center"
+  }
+});

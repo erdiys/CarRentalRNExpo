@@ -1,33 +1,76 @@
 import { Text, StyleSheet, Pressable } from "react-native";
 import React from "react";
 import { Colors } from "@/constants/Colors";
+import Animated, { useSharedValue, withSpring } from "react-native-reanimated";
 
-export default function button({name, onPress, style }) {
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
+export default function button({
+  name,
+  onPress,
+  style,
+  invert,
+  disabled
+}) {
+  const opacity = useSharedValue(1);
+
+  const handlePressIn = () => {
+    opacity.value = withSpring(0.8);
+  };
+
+  const handlePressOut = () => {
+    opacity.value = withSpring(1);
+  };
+
   return (
-    <Pressable style={{...styles.newButton, ...style}} onPress={onPress}>
-      <Text style={styles.newButtonLink}>
+    <AnimatedPressable
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      style={{
+        ...styles.newButton,
+        ...style,
+        opacity: disabled ? 1 : opacity,
+        backgroundColor: disabled
+          ? "#C9E7CA"
+          : invert
+          ? "white"
+          : Colors.common.button,
+          borderColor: disabled
+          ? "#C9E7CA"
+          : Colors.common.button
+      }}
+      onPress={onPress}
+      disabled={disabled}
+    >
+      <Text
+        style={{
+          ...styles.newButtonLink,
+          color: disabled? "white" : invert ? Colors.common.button : "white"
+        }}
+      >
         {name}
       </Text>
-    </Pressable>
+    </AnimatedPressable>
   );
 }
 
 const styles = StyleSheet.create({
-    newButton: {
-      borderRadius: 10,
-      backgroundColor: Colors.common.button,
-      alignItems: "center",
-      justifyContent: "center",
-      margin: 5,
-    },
-    newButtonLink: {
-      fontSize: 14,
-      lineHeight: 25,
-      fontFamily: 'PoppinsBold',
-      color: 'white',
-      padding: 5,
-      width: '100%',
-      textAlign: 'center',
-    },
-  });
-  
+  newButton: {
+    borderWidth: 1,
+    borderRadius: 10,
+    borderColor: Colors.common.button,
+    backgroundColor: Colors.common.button,
+    alignItems: "center",
+    justifyContent: "center",
+    margin: 5
+  },
+  newButtonLink: {
+    fontSize: 14,
+    lineHeight: 25,
+    fontFamily: "PoppinsBold",
+    color: "white",
+    padding: 5,
+    width: "100%",
+    textAlign: "center"
+  }
+});

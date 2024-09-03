@@ -8,9 +8,12 @@ import Menu from "@/components/Menu";
 import { router } from "expo-router";
 import { Row, Col } from "@/components/Grid";
 import CarList from "@/components/CarList";
+import GeoLocation from "../../components/GeoLocation";
+
 import * as SecureStored from "expo-secure-store";
 import { useSelector, useDispatch } from "react-redux";
 import { getCar, selectCar } from "../../redux/reducer/car/carSlice";
+import { reLogin } from "../../redux/reducer/auth/authLoginSlice";
 
 export default function HomeScreen() {
   const [user, setUser] = useState({});
@@ -57,12 +60,17 @@ export default function HomeScreen() {
 
     dispatch(getCar(signal));
     setUser(JSON.parse(SecureStored.getItem("user")));
+    dispatch(reLogin());
 
     return () => {
       // cancel request sebelum component di close
       controller.abort();
     };
   }, []);
+
+  // useEffect(() => {
+  //   dispatch(reLogin(user));
+  // }, [user])
 
   return (
     <ParallaxFlatList
@@ -75,7 +83,7 @@ export default function HomeScreen() {
           <View style={styles.container}>
             <View>
               <Text style={styles.textName}>Hi, {user.email}</Text>
-              <Text style={styles.textLoc}>Your Location</Text>
+              <GeoLocation style={styles.textLoc} />
             </View>
             <View>
               <Image source={images.avatar} style={styles.avatar} />

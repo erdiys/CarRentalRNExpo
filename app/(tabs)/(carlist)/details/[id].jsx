@@ -1,6 +1,13 @@
-import { View, Text, StyleSheet, Image, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  ScrollView,
+  Pressable
+} from "react-native";
 import React, { useEffect, useState } from "react";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { Row, Col } from "@/components/Grid";
 import { Ionicons } from "@expo/vector-icons";
 import NewButton from "@/components/Button";
@@ -35,7 +42,7 @@ export default function details() {
     const controller = new AbortController(); // UseEffect cleanup untuk menghindari memory Leak
     const signal = controller.signal; // UseEffect cleanup
 
-    dispatch(getCarDetails({payload:id, signal:signal}));
+    dispatch(getCarDetails({ payload: id, signal: signal }));
 
     return () => {
       // cancel request sebelum component di close
@@ -115,9 +122,16 @@ export default function details() {
         </Text>
         <NewButton
           name="Lanjutkan Pembayaran"
-          onPress={() => alert("Bayar Woey..")}
+          onPress={() => router.navigate("../../../(order)")}
         />
       </View>
+
+      <Pressable
+        style={styles.arrow}
+        onPress={() => router.replace("../../../(tabs)")}
+      >
+        <Ionicons size={30} name="arrow-back" />
+      </Pressable>
     </View>
   );
 }
@@ -199,5 +213,10 @@ const styles = StyleSheet.create({
     paddingRight: 10,
     gap: 10
     // justifyContent: 'center',
+  },
+  arrow: {
+    position: "absolute",
+    top: 15,
+    left: 20
   }
 });
