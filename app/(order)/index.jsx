@@ -8,12 +8,18 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 
 export default function index() {
+  const [orderId, setOrderId] = useState(null);
   const [activeStep, setActiveStep] = useState(0);
-  const [payment, setPayment] = useState("");
+  const [payment, setPayment] = useState({
+    name: null,
+    method: null,
+    number: null,
+    user: null
+  });
   const stepName = [
     "Pembayaran",
-    `${payment} Transfer\nOrder ID: xxxxxxxx`,
-    `Tiket\nOrder ID: xxxxxxxx`
+    `${payment.method}\nOrder ID: ${orderId}`,
+    `Tiket\nOrder ID: ${orderId}`
   ];
 
   return (
@@ -50,6 +56,8 @@ export default function index() {
             setActiveStep={setActiveStep}
             payment={payment}
             setPayment={setPayment}
+            orderId={orderId}
+            setOrderId={setOrderId}
           />
         </ProgressStep>
         <ProgressStep

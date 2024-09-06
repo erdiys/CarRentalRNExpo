@@ -4,9 +4,11 @@ import {
   ScrollView,
   StyleSheet,
   Modal,
-  Pressable
+  Pressable,
+  Image,
+  Dimensions
 } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Col, Container, Row } from "../../../components/Grid";
 import Button from "../../../components/Button";
 import CarList from "../../../components/CarList";
@@ -14,14 +16,30 @@ import { Ionicons } from "@expo/vector-icons";
 import CountDown from "react-native-countdown-component-maintained";
 import * as Clipboard from "expo-clipboard";
 import ModalPopup from "@/components/Modal";
+import * as SecureStored from "expo-secure-store";
+import * as ImagePicker from "expo-image-picker";
 
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { selectCarDetails } from "@/redux/reducer/car/carDetailsSlice";
+import { selectOrder, putOrder } from "../../../redux/reducer/order/orderSlice";
+import { selectLogin } from "../../../redux/reducer/auth/authLoginSlice";
 
 const formatCurrency = new Intl.NumberFormat("id-ID", {
   style: "currency",
   currency: "IDR"
 });
+
+const sStore = {
+  save: (key, value) => {
+    SecureStored.setItem(key, value);
+  },
+  delItem: async (key) => {
+    await SecureStored.deleteItemAsync(key);
+  },
+  load: (key) => {
+    return SecureStored.getItem(key);
+  }
+};
 
 const getDate24 = () => {
   const date24 = new Date();
@@ -29,11 +47,74 @@ const getDate24 = () => {
   return date24;
 };
 
-export default function step2({ setActiveStep, payment, setPayment }) {
+export default function step2({
+  setActiveStep,
+  payment,
+  setPayment,
+  orderId,
+  setOrderId
+}) {
+  const userData = useSelector(selectLogin);
+  const orderData = useSelector(selectOrder);
+  const [image, setImage] = useState(null);
   const [copy, setCopy] = useState(false);
-  const [count, setCount] = useState("");
+  const [date, setDate] = useState(getDate24());
   const { data } = useSelector(selectCarDetails);
   const [modalVisible, setModalVisible] = useState(false);
+  const dispatch = useDispatch();
+
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      // allowsEditing: true,
+      // aspect: [4, 3],
+      quality: 1
+    });
+
+    if (result.assets[0].uri) {
+      setImage({
+        src: { uri: result.assets[0].uri },
+        dimension: {
+          width: result.assets[0].width,
+          height: result.assets[0].height
+        },
+        objFormData: {
+          uri: result.assets[0].uri,
+          name: result.assets[0].fileName,
+          type: result.assets[0].mimeType
+        }
+      });
+    }
+  };
+
+  const upload = () => {
+    if (image !== null) {
+      const formData = new FormData();
+      formData.append("slip", image.objFormData);
+
+      dispatch(
+        putOrder({
+          token: userData.data.access_token,
+          formData: formData,
+          id: orderId
+        })
+      );
+      
+      setModalVisible(false);
+      setActiveStep(2);
+    } else {
+      alert("Tolong upload bukti pembayaran");
+    }
+  };
+
+  const maxHeightRasio = () => {
+    const windowWidth = Dimensions.get("window").width;
+    const width = windowWidth - 40;
+    const heightR = image.dimension.height / width;
+    const widthR = image.dimension.width / width;
+    const result = Math.round((width / widthR) * heightR);
+    return result;
+  };
 
   const copyToClipboard = async (text) => {
     await Clipboard.setStringAsync(text.toString());
@@ -42,8 +123,12 @@ export default function step2({ setActiveStep, payment, setPayment }) {
     }, 1000);
   };
 
+  useEffect(() => {
+    if (orderId === null) setOrderId(orderData.data.id);
+  }, [orderId]);
+
   const dataGen = { ...data };
-  if (data) {
+  if (!data.passengers) {
     if (data.category === "small") {
       dataGen.passengers = 4;
       dataGen.baggage = 2;
@@ -70,7 +155,7 @@ export default function step2({ setActiveStep, payment, setPayment }) {
             digitStyle={{ backgroundColor: "#FA2C5A" }}
             digitTxtStyle={{ color: "white", fontSize: 16 }}
             onFinish={() => {
-              setPayment("");
+              setPayment({ name: null });
               setActiveStep(0);
               alert("Your payment is expired");
             }}
@@ -80,26 +165,26 @@ export default function step2({ setActiveStep, payment, setPayment }) {
             showSeparator
           />
         </Row>
-        <Text style={styles.textTime}>{`${getDate24()}`}</Text>
+        <Text style={styles.textTime}>{`${date}`}</Text>
         <CarList
           image={dataGen.image}
           carName={dataGen.name}
           passengers={dataGen.passengers}
           baggage={dataGen.baggage}
           price={dataGen.price}
-          onPress={() => {
-            router.navigate(`/`);
-          }}
+          // onPress={() => {
+          //   router.navigate(`/`);
+          // }}
           style={{ width: "90%" }}
         />
         <Text style={styles.textTitle}>Lakukan transfer ke</Text>
         <View style={styles.bankRow}>
           <View style={{ ...styles.bankIcon, width: "25%" }}>
-            <Text style={styles.textBank}>{payment}</Text>
+            <Text style={styles.textBank}>{payment.name}</Text>
           </View>
           <View style={{ width: "75%" }}>
-            <Text style={styles.textBank}>{payment} Transfer</Text>
-            <Text style={styles.textBank}>a.n Gumuk Pasir Parangkusumo</Text>
+            <Text style={styles.textBank}>{payment.method}</Text>
+            <Text style={styles.textBank}>a.n {payment.user}</Text>
           </View>
         </View>
 
@@ -107,10 +192,10 @@ export default function step2({ setActiveStep, payment, setPayment }) {
           <View style={styles.boxBayar}>
             <Text style={styles.textBayar}>Nomor Rekening</Text>
             <Row style={styles.boxRek}>
-              <Text style={styles.textRek}>xxxx-xxxx-xxxx</Text>
+              <Text style={styles.textRek}>{payment.number}</Text>
               <Pressable
                 onPress={() => {
-                  copyToClipboard("xxxx-xxxx-xxxx");
+                  copyToClipboard(payment.number);
                   setCopy(true);
                 }}
               >
@@ -122,7 +207,7 @@ export default function step2({ setActiveStep, payment, setPayment }) {
             <Text style={styles.textBayar}>Total Bayar</Text>
             <Row style={styles.boxRek}>
               <Text style={styles.textRek}>
-                {formatCurrency.format(dataGen.price)}
+                {formatCurrency.format(orderData?.data.total_price)}
               </Text>
               <Pressable
                 onPress={() => {
@@ -142,7 +227,7 @@ export default function step2({ setActiveStep, payment, setPayment }) {
           {`Klik konfirmasi pembayaran untuk\nmempercepat proses pengecekan`}
         </Text>
         <Button
-          disabled={payment === "" ? true : false}
+          disabled={payment.name === null ? true : false}
           onPress={() => {
             setModalVisible(true);
           }}
@@ -158,14 +243,14 @@ export default function step2({ setActiveStep, payment, setPayment }) {
         />
       </View>
 
-      <ModalPopup visible={copy} style={{backgroundColor: 'rgba(0,0,0,.2)'}} >
+      <ModalPopup visible={copy} style={{ backgroundColor: "rgba(0,0,0,.2)" }}>
         <View style={styles.boxCopy}>
           <Text style={styles.textCopy}>Copied to Clipboard!</Text>
         </View>
       </ModalPopup>
 
       <Modal visible={modalVisible} animationType="slide">
-        <Container style={styles.container}>
+        <Container style={styles.modalContainer}>
           <ScrollView>
             <Col style={styles.childContainer}>
               <Text style={styles.textModal}>Konfirmasi Pembayaran</Text>
@@ -174,18 +259,71 @@ export default function step2({ setActiveStep, payment, setPayment }) {
                 akan segera kami cek tunggu kurang lebih 10 menit untuk
                 mendapatkan konfirmasi.
               </Text>
+              <View style={styles.textModal}>
+                <CountDown
+                  until={600}
+                  digitStyle={{ backgroundColor: "#FA2C5A" }}
+                  digitTxtStyle={{ color: "white", fontSize: 16 }}
+                  onFinish={() => {
+                    setModalVisible(false);
+                  }}
+                  size={12}
+                  timeToShow={["M", "S"]}
+                  timeLabels={{ m: null, s: null }}
+                  showSeparator
+                />
+              </View>
               <Text style={styles.textModal}>Upload Bukti Pembayaran</Text>
               <Text style={styles.textModal}>
                 Untuk membantu kami lebih cepat melakukan pengecekan. Kamu bisa
                 upload bukti bayarmu
               </Text>
-              <View>
-                <Text>(isi gambar nanti)</Text>
+              <View
+                style={
+                  image !== null
+                    ? {
+                        maxHeight: maxHeightRasio(),
+                        ...styles.pict,
+                        ...image.dimension
+                      }
+                    : styles.pict
+                }
+              >
+                {image !== null ? (
+                  <Image source={image.src} style={styles.uploadImage} />
+                ) : (
+                  <Pressable
+                    onPress={pickImage}
+                    style={{
+                      height: "100%",
+                      width: "100%",
+                      justifyContent: "center",
+                      alignItems: "center"
+                    }}
+                  >
+                    <Ionicons name="image-outline" size={30} />
+                  </Pressable>
+                )}
+
+                <Pressable
+                  style={{
+                    ...styles.closeImage,
+                    display: image !== null ? "flex" : "none"
+                  }}
+                  onPress={() => setImage(null)}
+                >
+                  <Ionicons size={40} name="close-circle" color="red" />
+                </Pressable>
               </View>
             </Col>
           </ScrollView>
           <View style={styles.bayarContainer}>
-            <Button name="Upload" onPress={() => setModalVisible(false)} />
+            <Button
+              name="Upload"
+              onPress={() => {
+                upload();
+              }}
+            />
             <Button
               name="Lihat Daftar Pesanan"
               invert={true}
@@ -207,13 +345,18 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     paddingHorizontal: 20,
     paddingBottom: 15,
-    alignItems: "center",
-    alignItems: "center",
-    height: "100%"
+    justifyContent: "center"
+  },
+  modalContainer: {
+    height: "100%",
+    backgroundColor: "white",
+    paddingHorizontal: 20,
+    paddingBottom: 15,
+    justifyContent: "center",
+    alignItems: "flex-start"
   },
   childContainer: {
-    width: "100%",
-    justifyContent: "center",
+    justifyContent: "flex-start",
     alignItems: "center"
   },
   bayarContainer: {
@@ -281,7 +424,7 @@ const styles = StyleSheet.create({
     fontFamily: "PoppinsBold",
     fontSize: 14,
     textAlign: "center",
-    marginBottom: 10
+    marginVertical: 10
   },
   boxCount: {
     alignItems: "center",
@@ -290,7 +433,7 @@ const styles = StyleSheet.create({
   boxCopy: {
     backgroundColor: "white",
     borderWidth: 2,
-    borderColor: 'grey',
+    borderColor: "grey",
     borderRadius: 20
   },
   textCopy: {
@@ -298,5 +441,31 @@ const styles = StyleSheet.create({
     fontSize: 20,
     paddingHorizontal: 30,
     paddingVertical: 5
+  },
+  pict: {
+    maxWidth: Dimensions.get("window").width - 40,
+    height: 200,
+    width: "100%",
+    objectFit: "contain",
+    backgroundColor: "#EEEEEE",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderRadius: 4,
+    borderStyle: "dashed",
+    borderColor: "#D0D0D0",
+    marginBottom: 10
+  },
+  uploadImage: {
+    height: "100%",
+    width: "100%",
+    objectFit: "contain"
+  },
+  closeImage: {
+    borderRadius: 100,
+    backgroundColor: "white",
+    position: "absolute",
+    top: 10,
+    right: 10
   }
 });

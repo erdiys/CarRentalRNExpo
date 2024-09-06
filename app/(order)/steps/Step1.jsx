@@ -6,13 +6,20 @@ import {
   Pressable,
   ScrollView
 } from "react-native";
-import { useCallback } from "react";
-import { useSelector } from "react-redux";
-import { selectCarDetails } from "@/redux/reducer/car/carDetailsSlice";
+import { useCallback, useEffect, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
-import CarList from "@/components/CarList";
-import Button from "@/components/Button";
+import CarList from "../../../components/CarList";
+import Button from "../../../components/Button";
 import { Col, Container, Row } from "../../../components/Grid";
+
+import { useSelector, useDispatch } from "react-redux";
+import { selectCarDetails } from "../../../redux/reducer/car/carDetailsSlice";
+import {
+  selectOrder,
+  postOrder,
+  setCarId
+} from "../../../redux/reducer/order/orderSlice";
+import { selectLogin } from "../../../redux/reducer/auth/authLoginSlice";
 
 const formatCurrency = new Intl.NumberFormat("id-ID", {
   style: "currency",
@@ -20,21 +27,99 @@ const formatCurrency = new Intl.NumberFormat("id-ID", {
 });
 
 const paymentMethod = [
-  "BCA",
-  "BNI",
-  "Mandiri",
-  "BSI",
-  "BTN",
-  "Permata",
-  "OVO",
-  "DANA",
-  "Shoppe",
-  "Flip"
+  {
+    name: "BCA",
+    method: "BCA Transfer",
+    number: "471627236",
+    user: "Gumuk Pasir Parangkusumo"
+  },
+  {
+    name: "BNI",
+    method: "BNI Transfer",
+    number: "12836513",
+    user: "Gumuk Pasir Parangkusumo"
+  },
+  {
+    name: "Mandiri",
+    method: "Mandiri Transfer",
+    number: "87164256",
+    user: "Gumuk Pasir Parangkusumo"
+  },
+  {
+    name: "BSI",
+    method: "BSI Transfer",
+    number: "86542811244153",
+    user: "Gumuk Pasir Parangkusumo"
+  },
+  {
+    name: "BTN",
+    method: "BTN Transfer",
+    number: "12121234122131",
+    user: "Gumuk Pasir Parangkusumo"
+  },
+  {
+    name: "Permata",
+    method: "Permata Transfer",
+    number: "44222416",
+    user: "Gumuk Pasir Parangkusumo"
+  },
+  {
+    name: "OVO",
+    method: "OVO Transfer",
+    number: "08123456789",
+    user: "John Doe"
+  },
+  {
+    name: "DANA",
+    method: "DANA Transfer",
+    number: "08123456789",
+    user: "John Doe"
+  },
+  {
+    name: "Shoppe",
+    method: "Shoppe Pay",
+    number: "08123456789",
+    user: "John Doe"
+  },
+  {
+    name: "BRI",
+    method: "BRI Virtual Account",
+    number: "88868847815",
+    user: "Gumuk Pasir Parangkusumo"
+  }
 ];
 
 export default function step1({ setActiveStep, payment, setPayment }) {
+  const [user, setUser] = useState(null);
   const { data } = useSelector(selectCarDetails);
+  const login = useSelector(selectLogin);
   const formatIDR = useCallback((price) => formatCurrency.format(price), []);
+  const dispatch = useDispatch();
+
+  const getDate = () => {
+    const date = new Date();
+    const dateFinish = new Date(date.getTime() + 24 * 3600000);
+
+    return {
+      start: date.toISOString().split("T")[0],
+      finish: dateFinish.toISOString().split("T")[0]
+    };
+  };
+
+  const bayar = () => {
+    const date = getDate();
+    dispatch(
+      postOrder({
+        token: user.access_token,
+        formData: { start: date.start, finish: date.finish, id: data.id }
+      })
+    );
+    dispatch(setCarId(data.id));
+  };
+
+  useEffect(() => {
+    if (user === null) setUser(login.data);
+  }, []);
 
   const dataGen = { ...data };
   if (data) {
@@ -56,16 +141,16 @@ export default function step1({ setActiveStep, payment, setPayment }) {
 
   return (
     <Container style={styles.container}>
-      <ScrollView style={{width: '100%'}}>
+      <ScrollView style={{ width: "100%" }}>
         <CarList
           image={dataGen.image}
           carName={dataGen.name}
           passengers={dataGen.passengers}
           baggage={dataGen.baggage}
           price={dataGen.price}
-          onPress={() => {
-            router.navigate(`/`);
-          }}
+          // onPress={() => {
+          //   router.navigate(`/`);
+          // }}
           style={{ width: "90%" }}
         />
 
@@ -80,19 +165,25 @@ export default function step1({ setActiveStep, payment, setPayment }) {
               <Pressable
                 key={idx}
                 style={styles.bankRow}
-                onPress={() => (payment === e ? setPayment("") : setPayment(e))}
+                onPress={() =>
+                  payment.name === e.name
+                    ? setPayment({ name: null })
+                    : setPayment(e)
+                }
               >
                 <View style={{ ...styles.bankIcon, width: "25%" }}>
-                  <Text style={styles.textBank}>{e}</Text>
+                  <Text style={styles.textBank}>{e.name}</Text>
                 </View>
                 <View style={{ width: "45%" }}>
-                  <Text style={styles.textBank}>{e} Transfer</Text>
+                  <Text style={styles.textBank}>{e.method}</Text>
                 </View>
                 <View style={{ width: "20%", alignItems: "flex-end" }}>
                   <Ionicons
                     size={30}
                     name="checkmark"
-                    style={{ display: payment === e ? "flex" : "none" }}
+                    style={{
+                      display: payment.name === e.name ? "flex" : "none"
+                    }}
                     color="#5CB85F"
                   />
                 </View>
@@ -118,8 +209,9 @@ export default function step1({ setActiveStep, payment, setPayment }) {
       <View style={styles.bayarContainer}>
         <Text style={styles.textPrice}>{formatIDR(data.price || 0)}</Text>
         <Button
-          disabled={payment === "" ? true : false}
+          disabled={payment.name === null}
           onPress={() => {
+            bayar();
             setActiveStep(1);
           }}
           name="Bayar"

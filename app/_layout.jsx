@@ -33,7 +33,7 @@ export default function RootLayout() {
   useEffect(() => {
     if (loaded) {
       setTimeout(() => {
-        if (user) router.navigate("/(tabs)");
+        if (user) router.replace("/(tabs)");
       }, 200);
 
       setTimeout(() => {

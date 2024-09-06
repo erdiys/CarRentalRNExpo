@@ -1,5 +1,5 @@
 import { View, Text, Image, StyleSheet } from "react-native";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import images from "../../assets/images";
 import { Colors } from "@/constants/Colors";
 import ParallaxFlatList from "@/components/ParallaxFlatList";
@@ -68,9 +68,36 @@ export default function HomeScreen() {
     };
   }, []);
 
-  // useEffect(() => {
-  //   dispatch(reLogin(user));
-  // }, [user])
+  const renderItem = useCallback(({ item }) => {
+    const val = {};
+    if (item.category === "small") {
+      val.passengers = 4;
+      val.baggage = 2;
+    } else if (item.category === "medium") {
+      val.passengers = 6;
+      val.baggage = 3;
+    } else if (item.category === "large") {
+      val.passengers = 8;
+      val.baggage = 4;
+    }
+    if (item.name == "Innova") {
+      val.image =
+        "https://ik.imagekit.io/tvlk/xpe-asset/AyJ40ZAo1DOyPyKLZ9c3RGQHTP2oT4ZXW+QmPVVkFQiXFSv42UaHGzSmaSzQ8DO5QIbWPZuF+VkYVRk6gh-Vg4ECbfuQRQ4pHjWJ5Rmbtkk=/4674690068575/6-Hours-INNOVA-REBORN-Car-Rental-Includes-Driver-32dfefb9-a283-44a5-a429-f7c7d62b4d44.png?tr=q-60,c-at_max,w-1280,h-720&_src=imagekit";
+    }
+
+    return (
+      <CarList
+        image={item.image ? item.image : val.image}
+        carName={item.name}
+        passengers={val.passengers}
+        baggage={val.baggage}
+        price={item.price}
+        onPress={() => {
+          router.navigate(`(carlist)/details/${item.id}`);
+        }}
+      />
+    );
+  })
 
   return (
     <ParallaxFlatList
@@ -150,36 +177,7 @@ export default function HomeScreen() {
       }
       loading={isLoading}
       data={data}
-      renderItem={({ item }) => {
-        const val = {};
-        if (item.category === "small") {
-          val.passengers = 4;
-          val.baggage = 2;
-        } else if (item.category === "medium") {
-          val.passengers = 6;
-          val.baggage = 3;
-        } else if (item.category === "large") {
-          val.passengers = 8;
-          val.baggage = 4;
-        }
-        if (item.name == "Innova") {
-          val.image =
-            "https://ik.imagekit.io/tvlk/xpe-asset/AyJ40ZAo1DOyPyKLZ9c3RGQHTP2oT4ZXW+QmPVVkFQiXFSv42UaHGzSmaSzQ8DO5QIbWPZuF+VkYVRk6gh-Vg4ECbfuQRQ4pHjWJ5Rmbtkk=/4674690068575/6-Hours-INNOVA-REBORN-Car-Rental-Includes-Driver-32dfefb9-a283-44a5-a429-f7c7d62b4d44.png?tr=q-60,c-at_max,w-1280,h-720&_src=imagekit";
-        }
-
-        return (
-          <CarList
-            image={item.image ? item.image : val.image}
-            carName={item.name}
-            passengers={val.passengers}
-            baggage={val.baggage}
-            price={item.price}
-            onPress={() => {
-              router.navigate(`(carlist)/details/${item.id}`);
-            }}
-          />
-        );
-      }}
+      renderItem={renderItem}
       keyExtractor={(item, index) => {
         return item.id;
       }}

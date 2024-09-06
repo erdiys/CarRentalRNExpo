@@ -1,11 +1,36 @@
-import { View, Text, ScrollView, StyleSheet } from "react-native";
-import React from "react";
+import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  Image,
+  Dimensions
+} from "react-native";
+import React, { useEffect, useState } from "react";
 import { Col, Container, Row } from "../../../components/Grid";
 import Button from "../../../components/Button";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
+import { useSelector, useDispatch } from "react-redux";
+import {
+  selectOrder,
+  deleteOrder
+} from "../../../redux/reducer/order/orderSlice";
+
 export default function step3({ setActiveStep, payment, setPayment }) {
+  const orderData = useSelector(selectOrder);
+  const [order, setOrder] = useState(null);
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    if (orderData.data.slip && order === null) {
+      setOrder(orderData.data);
+    }
+  }, [order]);
+
+  console.log(order);
+
   return (
     <Container style={styles.container}>
       <ScrollView>
@@ -19,8 +44,21 @@ export default function step3({ setActiveStep, payment, setPayment }) {
           </View>
           <View style={styles.boxBayar}>
             <Text style={styles.textBayar}>E-ticket</Text>
-            <View>
-              <Text>(PDF Viewer)</Text>
+            <View style={styles.pdf}>
+              {orderData.data.slip ? (
+                <>
+                  <Image
+                    source={{ uri: orderData.data.slip }}
+                    style={styles.uploadImage}
+                  />
+                  <Text>{orderData.data.slip}</Text>
+                </>
+              ) : (
+                <Row style={{ alignItems: "center", gap: 20 }}>
+                  <Ionicons name="image-outline" size={30} />
+                  <Text>PDF Viewer</Text>
+                </Row>
+              )}
             </View>
             <Text style={styles.note}>
               Tunjukkan tiket ini ke petugas JBO di pos penjemputan Anda.
@@ -29,6 +67,13 @@ export default function step3({ setActiveStep, payment, setPayment }) {
         </Col>
       </ScrollView>
       <View style={styles.bayarContainer}>
+        <Button
+          name="Hapus Pesanan"
+          invert={false}
+          onPress={() => {
+            dispatch(deleteOrder(orderData.data.id));
+          }}
+        />
         <Button
           name="Lihat Daftar Pesanan"
           invert={true}
@@ -71,15 +116,16 @@ const styles = StyleSheet.create({
   },
   boxBayar: {
     marginVertical: 10,
-    gap: 5
+    gap: 5,
+    width: "100%"
   },
   boxRek: {
     borderWidth: 1,
     borderRadius: 4,
     width: "100%",
     padding: 10,
-    justifyContent: 'space-between',
-    alignItems: 'center'
+    justifyContent: "space-between",
+    alignItems: "center"
   },
   textRek: {
     fontFamily: "PoppinsBold",
@@ -88,5 +134,24 @@ const styles = StyleSheet.create({
   note: {
     fontFamily: "Poppins",
     fontSize: 10
+  },
+  pdf: {
+    maxWidth: Dimensions.get("window").width - 40,
+    height: 200,
+    width: "100%",
+    objectFit: "contain",
+    backgroundColor: "#EEEEEE",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderRadius: 4,
+    borderStyle: "dashed",
+    borderColor: "#D0D0D0",
+    marginBottom: 10
+  },
+  uploadImage: {
+    height: "100%",
+    width: "100%",
+    objectFit: "contain"
   }
 });

@@ -5,13 +5,7 @@ import Animated, { useSharedValue, withSpring } from "react-native-reanimated";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-export default function button({
-  name,
-  onPress,
-  style,
-  invert,
-  disabled
-}) {
+export default function button({ name, onPress, style, invert, disabled }) {
   const opacity = useSharedValue(1);
 
   const handlePressIn = () => {
@@ -35,9 +29,7 @@ export default function button({
           : invert
           ? "white"
           : Colors.common.button,
-          borderColor: disabled
-          ? "#C9E7CA"
-          : Colors.common.button
+        borderColor: disabled ? "#C9E7CA" : Colors.common.button
       }}
       onPress={onPress}
       disabled={disabled}
@@ -45,7 +37,7 @@ export default function button({
       <Text
         style={{
           ...styles.newButtonLink,
-          color: disabled? "white" : invert ? Colors.common.button : "white"
+          color: disabled ? "white" : invert ? Colors.common.button : "white"
         }}
       >
         {name}
