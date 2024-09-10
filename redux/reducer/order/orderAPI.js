@@ -58,7 +58,7 @@ export const putOrder = createAsyncThunk(
 
 export const deleteOrder = createAsyncThunk(
   "deleteOrder",
-  async ({ id }, { rejectWithValue }) => {
+  async ({ id, token }, { rejectWithValue }) => {
     try {
       const res = await fetch(
         `https://api-car-rental.binaracademy.org/customer/order/${id}`,

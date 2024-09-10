@@ -15,21 +15,22 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSelector, useDispatch } from "react-redux";
 import {
   selectOrder,
-  deleteOrder
+  deleteOrder,
+  resetState
 } from "../../../redux/reducer/order/orderSlice";
 
-export default function step3({ setActiveStep, payment, setPayment }) {
-  const orderData = useSelector(selectOrder);
-  const [order, setOrder] = useState(null);
+export default function step3({ setActiveStep, imageDimension, user }) {
+  const { data } = useSelector(selectOrder);
   const dispatch = useDispatch();
 
-  useEffect(() => {
-    if (orderData.data.slip && order === null) {
-      setOrder(orderData.data);
-    }
-  }, [order]);
-
-  console.log(order);
+  const maxHeightRasio = () => {
+    const windowWidth = Dimensions.get("window").width;
+    const width = windowWidth - 40;
+    const heightR = imageDimension.height / width;
+    const widthR = imageDimension.width / width;
+    const result = Math.round((width / widthR) * heightR);
+    return result;
+  };
 
   return (
     <Container style={styles.container}>
@@ -44,14 +45,24 @@ export default function step3({ setActiveStep, payment, setPayment }) {
           </View>
           <View style={styles.boxBayar}>
             <Text style={styles.textBayar}>E-ticket</Text>
-            <View style={styles.pdf}>
-              {orderData.data.slip ? (
+            <View
+              style={
+                data.slip
+                  ? {
+                      maxHeight: maxHeightRasio(),
+                      ...styles.pdf,
+                      ...imageDimension
+                    }
+                  : styles.pdf
+              }
+            >
+              {data.slip ? (
                 <>
                   <Image
-                    source={{ uri: orderData.data.slip }}
+                    source={{ uri: data.slip }}
                     style={styles.uploadImage}
+                    onError={(e) => console.log("displaying slip error", e)}
                   />
-                  <Text>{orderData.data.slip}</Text>
                 </>
               ) : (
                 <Row style={{ alignItems: "center", gap: 20 }}>
@@ -71,14 +82,17 @@ export default function step3({ setActiveStep, payment, setPayment }) {
           name="Hapus Pesanan"
           invert={false}
           onPress={() => {
-            dispatch(deleteOrder(orderData.data.id));
+            dispatch(
+              deleteOrder({ id: data.id, token: user.data.access_token })
+            );
+            dispatch(resetState());
+            setActiveStep(0);
           }}
         />
         <Button
           name="Lihat Daftar Pesanan"
           invert={true}
           onPress={() => {
-            setActiveStep(3);
             router.replace("../../(tabs)/profile");
           }}
         />
@@ -93,9 +107,7 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     paddingHorizontal: 20,
     paddingVertical: 15,
-    alignItems: "center",
-    alignItems: "center",
-    height: "100%"
+    alignItems: "center"
   },
   childContainer: {
     width: "100%",

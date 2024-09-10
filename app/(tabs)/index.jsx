@@ -76,7 +76,7 @@ export default function HomeScreen() {
     } else if (item.category === "medium") {
       val.passengers = 6;
       val.baggage = 3;
-    } else if (item.category === "large") {
+    } else if (item.category === "large" || item.category === "big") {
       val.passengers = 8;
       val.baggage = 4;
     }
@@ -97,7 +97,7 @@ export default function HomeScreen() {
         }}
       />
     );
-  })
+  });
 
   return (
     <ParallaxFlatList

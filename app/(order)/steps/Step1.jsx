@@ -89,33 +89,11 @@ const paymentMethod = [
   }
 ];
 
-export default function step1({ setActiveStep, payment, setPayment }) {
+export default function step1({ setActiveStep, payment, setPayment, bayar }) {
   const [user, setUser] = useState(null);
   const { data } = useSelector(selectCarDetails);
   const login = useSelector(selectLogin);
   const formatIDR = useCallback((price) => formatCurrency.format(price), []);
-  const dispatch = useDispatch();
-
-  const getDate = () => {
-    const date = new Date();
-    const dateFinish = new Date(date.getTime() + 24 * 3600000);
-
-    return {
-      start: date.toISOString().split("T")[0],
-      finish: dateFinish.toISOString().split("T")[0]
-    };
-  };
-
-  const bayar = () => {
-    const date = getDate();
-    dispatch(
-      postOrder({
-        token: user.access_token,
-        formData: { start: date.start, finish: date.finish, id: data.id }
-      })
-    );
-    dispatch(setCarId(data.id));
-  };
 
   useEffect(() => {
     if (user === null) setUser(login.data);
@@ -129,7 +107,7 @@ export default function step1({ setActiveStep, payment, setPayment }) {
     } else if (data.category === "medium") {
       dataGen.passengers = 6;
       dataGen.baggage = 3;
-    } else if (data.category === "large") {
+    } else if (data.category === "large" || data.category === "big") {
       dataGen.passengers = 8;
       dataGen.baggage = 4;
     }
@@ -212,7 +190,7 @@ export default function step1({ setActiveStep, payment, setPayment }) {
           disabled={payment.name === null}
           onPress={() => {
             bayar();
-            setActiveStep(1);
+            // setActiveStep(1);
           }}
           name="Bayar"
         />

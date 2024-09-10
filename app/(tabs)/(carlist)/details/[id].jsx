@@ -58,7 +58,7 @@ export default function details() {
     } else if (data.category === "medium") {
       dataGen.passengers = 6;
       dataGen.baggage = 3;
-    } else if (data.category === "large") {
+    } else if (data.category === "large" || data.category === "big") {
       dataGen.passengers = 8;
       dataGen.baggage = 4;
     }

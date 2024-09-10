@@ -8,11 +8,12 @@ import { router, Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import "react-native-reanimated";
-
 import { useColorScheme } from "@/hooks/useColorScheme";
+
 import * as SecureStored from "expo-secure-store";
 import { Provider } from "react-redux";
 import { store } from "../redux/store";
+import crashlytics from "@react-native-firebase/crashlytics";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -31,6 +32,7 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
+    crashlytics().log("app started");
     if (loaded) {
       setTimeout(() => {
         if (user) router.replace("/(tabs)");

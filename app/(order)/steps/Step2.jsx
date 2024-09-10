@@ -16,30 +16,16 @@ import { Ionicons } from "@expo/vector-icons";
 import CountDown from "react-native-countdown-component-maintained";
 import * as Clipboard from "expo-clipboard";
 import ModalPopup from "@/components/Modal";
-import * as SecureStored from "expo-secure-store";
 import * as ImagePicker from "expo-image-picker";
 
 import { useSelector, useDispatch } from "react-redux";
 import { selectCarDetails } from "@/redux/reducer/car/carDetailsSlice";
 import { selectOrder, putOrder } from "../../../redux/reducer/order/orderSlice";
-import { selectLogin } from "../../../redux/reducer/auth/authLoginSlice";
 
 const formatCurrency = new Intl.NumberFormat("id-ID", {
   style: "currency",
   currency: "IDR"
 });
-
-const sStore = {
-  save: (key, value) => {
-    SecureStored.setItem(key, value);
-  },
-  delItem: async (key) => {
-    await SecureStored.deleteItemAsync(key);
-  },
-  load: (key) => {
-    return SecureStored.getItem(key);
-  }
-};
 
 const getDate24 = () => {
   const date24 = new Date();
@@ -51,24 +37,25 @@ export default function step2({
   setActiveStep,
   payment,
   setPayment,
-  orderId,
-  setOrderId
+  image,
+  setImage,
+  imageDimension,
+  upload,
+  modalVisible,
+  setModalVisible,
+  uploadable
 }) {
-  const userData = useSelector(selectLogin);
   const orderData = useSelector(selectOrder);
-  const [image, setImage] = useState(null);
   const [copy, setCopy] = useState(false);
   const [date, setDate] = useState(getDate24());
   const { data } = useSelector(selectCarDetails);
-  const [modalVisible, setModalVisible] = useState(false);
-  const dispatch = useDispatch();
 
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.All,
       // allowsEditing: true,
       // aspect: [4, 3],
-      quality: 1
+      quality: 0.5
     });
 
     if (result.assets[0].uri) {
@@ -82,28 +69,9 @@ export default function step2({
           uri: result.assets[0].uri,
           name: result.assets[0].fileName,
           type: result.assets[0].mimeType
-        }
+        },
+        size: result.assets[0].fileSize
       });
-    }
-  };
-
-  const upload = () => {
-    if (image !== null) {
-      const formData = new FormData();
-      formData.append("slip", image.objFormData);
-
-      dispatch(
-        putOrder({
-          token: userData.data.access_token,
-          formData: formData,
-          id: orderId
-        })
-      );
-      
-      setModalVisible(false);
-      setActiveStep(2);
-    } else {
-      alert("Tolong upload bukti pembayaran");
     }
   };
 
@@ -123,10 +91,6 @@ export default function step2({
     }, 1000);
   };
 
-  useEffect(() => {
-    if (orderId === null) setOrderId(orderData.data.id);
-  }, [orderId]);
-
   const dataGen = { ...data };
   if (!data.passengers) {
     if (data.category === "small") {
@@ -135,7 +99,7 @@ export default function step2({
     } else if (data.category === "medium") {
       dataGen.passengers = 6;
       dataGen.baggage = 3;
-    } else if (data.category === "large") {
+    } else if (data.category === "large" || data.category === "big") {
       dataGen.passengers = 8;
       dataGen.baggage = 4;
     }
@@ -284,7 +248,7 @@ export default function step2({
                     ? {
                         maxHeight: maxHeightRasio(),
                         ...styles.pict,
-                        ...image.dimension
+                        ...imageDimension
                       }
                     : styles.pict
                 }
@@ -323,6 +287,7 @@ export default function step2({
               onPress={() => {
                 upload();
               }}
+              disabled={uploadable}
             />
             <Button
               name="Lihat Daftar Pesanan"

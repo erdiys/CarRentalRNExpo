@@ -11,7 +11,11 @@ const initialState = {
   selectedBank: null,
   promo: null,
   paymentCountdown: null,
-  verificationCountdown: null
+  verificationCountdown: null,
+
+  status: null,
+  activeStep: 0,
+  imageDimension: {}
 };
 
 const orderSlice = createSlice({
@@ -33,31 +37,37 @@ const orderSlice = createSlice({
     // post order
     builder.addCase(postOrder.pending, (state, action) => {
       state.isLoading = true;
+      state.status = null;
     });
     builder.addCase(postOrder.fulfilled, (state, action) => {
       state.isLoading = false;
       state.errorMessage = null;
       state.data = action.payload;
+      state.status = 'success';
     });
     builder.addCase(postOrder.rejected, (state, action) => {
       state.isLoading = false;
       state.errorMessage = action.payload;
       state.data = { message: action.payload };
+      state.status = 'error';
     });
 
     // put order slip
     builder.addCase(putOrder.pending, (state, action) => {
       state.isLoading = true;
+      state.status = null;
     });
     builder.addCase(putOrder.fulfilled, (state, action) => {
       state.isLoading = false;
       state.errorMessage = null;
       state.data = action.payload;
+      state.status = 'upload-success';
     });
     builder.addCase(putOrder.rejected, (state, action) => {
       state.isLoading = false;
       state.errorMessage = action.payload;
       state.data = { message: action.payload };
+      state.status = 'error';
     });
   }
 });
