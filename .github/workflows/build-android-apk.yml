@@ -13,7 +13,10 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Create Google Services JSON File 
-        run: echo "${{ secrets.GOOGLE_SERVICE_JSON }}" > google-services.json
+        env:
+            GOOGLE_SERVICE: ${{ secrets.GOOGLE_SERVICE_JSON }}
+        run: |
+            echo $GOOGLE_SERVICE > google-services.json
         
     #   - uses: pnpm/action-setup@v4
     #     name: Install pnpm
