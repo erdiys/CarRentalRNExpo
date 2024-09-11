@@ -1,0 +1,176 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`renders correctly 1`] = `
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={true}
+  onBlur={[Function]}
+  onClick={[Function]}
+  onFocus={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    {
+      "backgroundColor": "white",
+      "borderColor": "#8A8A8A",
+      "borderRadius": 8,
+      "borderWidth": 0.5,
+      "elevation": 2,
+      "margin": 10,
+      "overflow": "hidden",
+      "padding": 12,
+      "shadowColor": "rgba(0,0,0,.5)",
+      "shadowOffset": {
+        "height": 3,
+        "width": 0,
+      },
+      "shadowOpacity": 1,
+      "shadowRadius": 1.5,
+      "width": "100%",
+    }
+  }
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "gap": 10,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "gap": 0,
+        }
+      }
+    >
+      <Image
+        source={
+          {
+            "uri": undefined,
+          }
+        }
+        style={
+          {
+            "height": 45,
+            "marginHorizontal": 20,
+            "objectFit": "contain",
+            "width": 45,
+          }
+        }
+      />
+    </View>
+    <View
+      style={
+        {
+          "gap": 0,
+        }
+      }
+    >
+      <Text
+        style={
+          {
+            "color": "black",
+            "fontFamily": "Poppins",
+            "fontSize": 14,
+          }
+        }
+      >
+        Jan Cook
+      </Text>
+      <View
+        style={
+          {
+            "flexDirection": "row",
+            "gap": 0,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "stretch",
+              "flexDirection": "row",
+              "gap": 0,
+            }
+          }
+        >
+          <Text />
+          <Text
+            style={
+              {
+                "color": "#8A8A8A",
+                "fontFamily": "Poppins",
+                "fontSize": 12,
+                "marginLeft": 4,
+                "marginRight": 15,
+              }
+            }
+          >
+            4
+          </Text>
+        </View>
+        <View
+          style={
+            {
+              "alignItems": "stretch",
+              "flexDirection": "row",
+              "gap": 0,
+            }
+          }
+        >
+          <Text />
+          <Text
+            style={
+              {
+                "color": "#8A8A8A",
+                "fontFamily": "Poppins",
+                "fontSize": 12,
+                "marginLeft": 4,
+                "marginRight": 15,
+              }
+            }
+          >
+            4
+          </Text>
+        </View>
+      </View>
+      <Text
+        style={
+          {
+            "color": "#5CB85F",
+            "fontFamily": "Poppins",
+            "fontSize": 14,
+          }
+        }
+      >
+        Rp 5.000.000,00
+      </Text>
+    </View>
+  </View>
+</View>
+`;
