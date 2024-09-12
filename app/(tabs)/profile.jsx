@@ -7,11 +7,29 @@ import { router } from "expo-router";
 import Colors from "@/constants/Colors";
 import * as SecureStored from "expo-secure-store";
 import { useSelector, useDispatch } from "react-redux";
-import { login, selectLogin, logout } from "../../redux/reducer/auth/authLoginSlice";
+import {
+  login,
+  selectLogin,
+  logout
+} from "../../redux/reducer/auth/authLoginSlice";
+import {
+  GoogleSignin,
+  GoogleSigninButton
+} from "@react-native-google-signin/google-signin";
+import auth from "@react-native-firebase/auth";
 
 export default function profile() {
   const { data } = useSelector(selectLogin);
   const dispatch = useDispatch();
+
+  const onSignOut = () => {
+    // auth()
+    //   .signOut()
+    //   .then(() => console.log("User signed out!"));
+    // GoogleSignin.revokeAccess();
+    dispatch(logout());
+    router.replace("../(auth)");
+  };
 
   return (
     <View>
@@ -27,10 +45,7 @@ export default function profile() {
               style={{
                 backgroundColor: "darkred"
               }}
-              onPress={() => {
-                dispatch(logout());
-                router.navigate("../(auth)");
-              }}
+              onPress={onSignOut}
             />
           </View>
         </Col>

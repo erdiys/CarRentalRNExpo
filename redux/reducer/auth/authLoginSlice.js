@@ -22,11 +22,13 @@ const authLoginSlice = createSlice({
     isLogin: false,
     isError: false,
     errorMessage: null,
-    state: null
+    state: null,
+    googleLogin: {}
   },
   reducers: {
     logout: (state) => {
       state.data = {};
+      state.googleLogin = {};
       state.isLogin = false;
       delItem("user");
     },
@@ -34,7 +36,11 @@ const authLoginSlice = createSlice({
       state.isLogin = true;
       state.isError = false;
       state.errorMessage = null;
-      state.data = JSON.parse(load('user'));
+      state.data = JSON.parse(load("user"));
+    },
+    googleLogin: (state, action) => {
+      console.log(action);
+      state.googleLogin = action.payload;
     }
   },
   extraReducers: (builder) => {
@@ -63,5 +69,5 @@ const authLoginSlice = createSlice({
 
 export const login = fetchLogin;
 export const selectLogin = (state) => state.login; // selector
-export const { logout, reLogin } = authLoginSlice.actions;
+export const { logout, reLogin, googleLogin } = authLoginSlice.actions;
 export default authLoginSlice.reducer;

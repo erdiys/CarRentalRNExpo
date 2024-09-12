@@ -15,7 +15,11 @@ import {
 import auth from "@react-native-firebase/auth";
 
 import { useSelector, useDispatch } from "react-redux";
-import { login, selectLogin } from "../../redux/reducer/auth/authLoginSlice";
+import {
+  login,
+  selectLogin,
+  googleLogin
+} from "../../redux/reducer/auth/authLoginSlice";
 
 GoogleSignin.configure({
   webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID
@@ -45,6 +49,10 @@ export default function Login() {
     password: ""
   });
 
+  const handleSubmit = (e) => {
+    dispatch(login({ email: e.email, password: e.password }));
+  };
+
   async function onGoogleButtonPress() {
     // Check if your device supports Google Play
     await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
@@ -55,14 +63,25 @@ export default function Login() {
 
     // Create a Google credential with the token
     const googleCredential = auth.GoogleAuthProvider.credential(idToken);
-    console.log("google", idToken, googleCredential);
+
     // Sign-in the user with the credential
     return auth().signInWithCredential(googleCredential);
   }
 
+  const onGoogleSignOut = () => {
+    auth()
+      .signOut()
+      .then(() => console.log("User signed out!"));
+    GoogleSignin.revokeAccess();
+    setTimeout(() => {
+      setUser(null);
+    }, 1000);
+  };
+
   // Handle user state changes
   function onAuthStateChanged(user) {
     setUser(user);
+    // dispatch(googleLogin({user: {photoURL, displayName, email}}));
     // if (initializing) setInitializing(false);
   }
 
@@ -70,6 +89,17 @@ export default function Login() {
     const subscriber = auth().onAuthStateChanged(onAuthStateChanged);
     return subscriber; // unsubscribe on unmount
   }, []);
+
+  useEffect(() => {
+    if (user !== null) {
+      const values = {
+        email: "erdianto.yuli@toyota.co.id",
+        password: "toyotaerdi"
+      };
+      setFormData(values);
+      handleSubmit(values);
+    }
+  }, [user]);
 
   useEffect(() => {
     if (isError === false && data.email) {
@@ -98,12 +128,6 @@ export default function Login() {
     }
   }, [isError, state]);
 
-  const handleSubmit = (e) => {
-    dispatch(login({ email: e.email, password: e.password }));
-  };
-
-  console.log(user);
-
   return (
     <View style={styles.container}>
       <Image source={images.toyota} style={styles.image} />
@@ -131,6 +155,7 @@ export default function Login() {
               <TextInput
                 style={styles.formInput}
                 placeholder="Contoh: john.doe@domain.com"
+                value={formData.email}
                 onChangeText={handleChange("email")}
                 onBlur={handleBlur("email")}
               />
@@ -145,6 +170,7 @@ export default function Login() {
                 style={styles.formInput}
                 secureTextEntry={true}
                 placeholder="password"
+                value={formData.password}
                 onChangeText={handleChange("password")}
                 onBlur={handleBlur("password")}
               />
@@ -180,15 +206,7 @@ export default function Login() {
                   )}
                   <NewButton
                     name="Google Signout"
-                    onPress={() => {
-                      auth()
-                        .signOut()
-                        .then(() => console.log("User signed out!"));
-                      GoogleSignin.revokeAccess();
-                      setTimeout(() => {
-                        setUser(null);
-                      }, 1000);
-                    }}
+                    onPress={onGoogleSignOut}
                     invert={true}
                     style={{ width: "70%" }}
                   />
@@ -214,7 +232,7 @@ export default function Login() {
               color={modalStatus.color}
             />
           </Row>
-          <Text style={styles.textModal}>{modalStatus.welcome}</Text>
+          <Text style={styles.textModal}>{user !== null? user.displayName : modalStatus.welcome}</Text>
         </View>
       </ModalPopup>
     </View>
