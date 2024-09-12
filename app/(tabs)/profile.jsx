@@ -28,7 +28,7 @@ export default function profile() {
     //   .then(() => console.log("User signed out!"));
     // GoogleSignin.revokeAccess();
     dispatch(logout());
-    router.replace("../(auth)");
+    router.navigate("../(auth)");
   };
 
   return (

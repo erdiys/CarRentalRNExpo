@@ -98,7 +98,7 @@ export default function Login() {
       };
       setFormData(values);
       handleSubmit(values);
-    }
+    } else {}
   }, [user]);
 
   useEffect(() => {
@@ -154,8 +154,7 @@ export default function Login() {
               <Text style={styles.formLabel}>Email</Text>
               <TextInput
                 style={styles.formInput}
-                placeholder="Contoh: john.doe@domain.com"
-                value={formData.email}
+                placeholder={formData.email === null? "Contoh: john.doe@domain.com" : formData.email}
                 onChangeText={handleChange("email")}
                 onBlur={handleBlur("email")}
               />
@@ -170,7 +169,6 @@ export default function Login() {
                 style={styles.formInput}
                 secureTextEntry={true}
                 placeholder="password"
-                value={formData.password}
                 onChangeText={handleChange("password")}
                 onBlur={handleBlur("password")}
               />
