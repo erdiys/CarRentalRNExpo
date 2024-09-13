@@ -161,7 +161,7 @@ export default function Login() {
               <TextInput
                 style={styles.formInput}
                 placeholder={
-                  formData.email === null
+                  formData.email === ""
                     ? "Contoh: john.doe@domain.com"
                     : formData.email
                 }

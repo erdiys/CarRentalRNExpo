@@ -14,10 +14,10 @@ export default function profile() {
   const dispatch = useDispatch();
 
   const onSignOut = () => {
-    auth()
-      .signOut()
-      .then(() => console.log("User signed out!"));
-    GoogleSignin.revokeAccess();
+    // auth()
+    //   .signOut()
+    //   .then(() => console.log("User signed out!"));
+    // GoogleSignin.revokeAccess();
     dispatch(logout());
     router.navigate("../(auth)");
   };
