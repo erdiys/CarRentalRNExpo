@@ -90,16 +90,22 @@ export default function Login() {
     return subscriber; // unsubscribe on unmount
   }, []);
 
-  useEffect(() => {
-    if (user !== null) {
-      const values = {
-        email: "erdianto.yuli@toyota.co.id",
-        password: "toyotaerdi"
-      };
-      setFormData(values);
-      handleSubmit(values);
-    } else {}
-  }, [user]);
+  // useEffect(() => {
+  //   if (user !== null) {
+  //     const values = {
+  //       email: "erdianto.yuli@toyota.co.id",
+  //       password: "toyotaerdi"
+  //     };
+  //     setFormData(values);
+  //     handleSubmit(values);
+  //   } else {
+  //     const values = {
+  //       email: "",
+  //       password: ""
+  //     };
+  //     setFormData(values);
+  //   }
+  // }, [user]);
 
   useEffect(() => {
     if (isError === false && data.email) {
@@ -154,7 +160,11 @@ export default function Login() {
               <Text style={styles.formLabel}>Email</Text>
               <TextInput
                 style={styles.formInput}
-                placeholder={formData.email === null? "Contoh: john.doe@domain.com" : formData.email}
+                placeholder={
+                  formData.email === null
+                    ? "Contoh: john.doe@domain.com"
+                    : formData.email
+                }
                 onChangeText={handleChange("email")}
                 onBlur={handleBlur("email")}
               />
@@ -230,7 +240,9 @@ export default function Login() {
               color={modalStatus.color}
             />
           </Row>
-          <Text style={styles.textModal}>{user !== null? user.displayName : modalStatus.welcome}</Text>
+          <Text style={styles.textModal}>
+            {user !== null ? user.displayName : modalStatus.welcome}
+          </Text>
         </View>
       </ModalPopup>
     </View>
