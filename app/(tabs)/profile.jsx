@@ -1,21 +1,12 @@
 import { View, Text, Image, StyleSheet } from "react-native";
-import React, { useState } from "react";
+import React from "react";
 import images from "../../assets/images";
 import { Container, Col } from "../../components/Grid";
 import NewButton from "@/components/Button";
 import { router } from "expo-router";
-import Colors from "@/constants/Colors";
-import * as SecureStored from "expo-secure-store";
 import { useSelector, useDispatch } from "react-redux";
-import {
-  login,
-  selectLogin,
-  logout
-} from "../../redux/reducer/auth/authLoginSlice";
-import {
-  GoogleSignin,
-  GoogleSigninButton
-} from "@react-native-google-signin/google-signin";
+import { selectLogin, logout } from "../../redux/reducer/auth/authLoginSlice";
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import auth from "@react-native-firebase/auth";
 
 export default function profile() {
@@ -23,10 +14,10 @@ export default function profile() {
   const dispatch = useDispatch();
 
   const onSignOut = () => {
-    // auth()
-    //   .signOut()
-    //   .then(() => console.log("User signed out!"));
-    // GoogleSignin.revokeAccess();
+    auth()
+      .signOut()
+      .then(() => console.log("User signed out!"));
+    GoogleSignin.revokeAccess();
     dispatch(logout());
     router.navigate("../(auth)");
   };
